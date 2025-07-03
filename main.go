@@ -7,17 +7,10 @@ import (
 )
 
 func main() {
-	myConfig, err := config.ReadConfig()
+	var state config.State
+	var err error
+	state.Config, err = config.ReadConfig()
 	if err != nil {
-		fmt.Printf("error while getting config from file: %v\n", err)
+		fmt.Printf("ERROR while getting config from file: %v\n", err)
 	}
-	err = myConfig.SetUser("Alex")
-	if err != nil {
-		fmt.Printf("error while setting user: %v\n", err)
-	}
-	myConfig, err = config.ReadConfig()
-	if err != nil {
-		fmt.Printf("error while getting config from file again: %v\n", err)
-	}
-	fmt.Printf("%v\n", myConfig)
 }
