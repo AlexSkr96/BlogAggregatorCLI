@@ -11,7 +11,11 @@ type Config struct {
 	Username string "json:current_user_name"
 }
 
+<<<<<<< HEAD
 type State struct {
+=======
+type state struct {
+>>>>>>> 579614f9ff3598c2c46c2dc6c7d097ae97797cb4
 	Config *Config
 }
 
@@ -74,13 +78,18 @@ func (c *commands) run(s *state, cmd command) error {
 			return fmt.Errorf("unknown command: %v", cmd)
 		}
 	}
+<<<<<<< HEAD
 	err := cmdFunc(s, cmd)
+=======
+	err := cmdFunc(s.Config)
+>>>>>>> 579614f9ff3598c2c46c2dc6c7d097ae97797cb4
 	if err != nil {
 		return fmt.Errorf("")
 	}
 	return nil
 }
 
+<<<<<<< HEAD
 func (c *commands) register(name string, f func(*state, command) error) error {
 	if _, exists := c.funcs[name]; exists {
 		return fmt.Errorf("command %v already exists", name)
@@ -88,3 +97,6 @@ func (c *commands) register(name string, f func(*state, command) error) error {
 	c.funcs[name] = f
 	return nil
 }
+=======
+func (c *commands) register(name string, f func(*state, command) error)
+>>>>>>> 579614f9ff3598c2c46c2dc6c7d097ae97797cb4
