@@ -11,27 +11,27 @@ type Config struct {
 	Username string "json:current_user_name"
 }
 
-<<<<<<< HEAD
 type State struct {
-=======
-type state struct {
->>>>>>> 579614f9ff3598c2c46c2dc6c7d097ae97797cb4
 	Config *Config
 }
 
-type command struct {
+type Command struct {
 	Name string
 	Args []string
 }
 
-type commands struct {
-	funcs map[string]func(*state, command) error
+type Commands struct {
+	funcs map[string]func(*State, Command) error
 }
 
 const configFileName = ".gatorconfig.json"
 
 func ReadConfig() (*Config, error) {
-	path := "./" + configFileName
+	path, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	path += fmt.Sprintf("/%v", configFileName)
 	rawJson, err := os.ReadFile(path)
 	if err != nil {
 		return &Config{}, err
@@ -45,7 +45,11 @@ func ReadConfig() (*Config, error) {
 }
 
 func (c *Config) SetUser(username string) error {
-	path := "./" + configFileName
+	path, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	path += fmt.Sprintf("/%v", configFileName)
 	c.Username = username
 	rawJson, err := json.Marshal(c)
 	if err != nil {
@@ -55,7 +59,7 @@ func (c *Config) SetUser(username string) error {
 	return nil
 }
 
-func handlerLogin(s *state, cmd command) error {
+func HandlerLogin(s *State, cmd Command) error {
 	if len(cmd.Args) == 0 {
 		return fmt.Errorf("expecting a username")
 	}
@@ -71,32 +75,30 @@ func handlerLogin(s *state, cmd command) error {
 	return nil
 }
 
-func (c *commands) run(s *state, cmd command) error {
+func (c *Commands) Run(s *State, cmd Command) error {
 	cmdFunc, exists := c.funcs[cmd.Name]
 	if exists {
 		if !exists {
 			return fmt.Errorf("unknown command: %v", cmd)
 		}
 	}
-<<<<<<< HEAD
 	err := cmdFunc(s, cmd)
-=======
-	err := cmdFunc(s.Config)
->>>>>>> 579614f9ff3598c2c46c2dc6c7d097ae97797cb4
 	if err != nil {
-		return fmt.Errorf("")
+		return err
 	}
 	return nil
 }
 
-<<<<<<< HEAD
-func (c *commands) register(name string, f func(*state, command) error) error {
+func (c *Commands) Register(name string, f func(*State, Command) error) error {
 	if _, exists := c.funcs[name]; exists {
 		return fmt.Errorf("command %v already exists", name)
 	}
 	c.funcs[name] = f
 	return nil
 }
-=======
-func (c *commands) register(name string, f func(*state, command) error)
->>>>>>> 579614f9ff3598c2c46c2dc6c7d097ae97797cb4
+
+func NewCommands() Commands {
+	return Commands{
+		funcs: make(map[string]func(*State, Command) error),
+	}
+}
