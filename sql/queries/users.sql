@@ -10,5 +10,4 @@ returning *;
 
 -- name: GetUserByUsername :one
 select * from users
-where name = $1
-returning *;
+where name = $1;

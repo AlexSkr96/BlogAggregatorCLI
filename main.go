@@ -7,12 +7,15 @@ import (
 	// "github.com/google/uuid"
 	_ "github.com/lib/pq"
 
-	// "database/sql"
+	"database/sql"
+
 	"github.com/AlexSkr96/BlogAggregatorCLI/internal/config"
+	"github.com/AlexSkr96/BlogAggregatorCLI/internal/database"
 )
 
 type state struct {
 	config *config.Config
+	db     *database.Queries
 }
 
 func main() {
@@ -24,8 +27,9 @@ func main() {
 		fmt.Printf("ERROR while getting config from file: %v\n", err)
 		os.Exit(1)
 	}
-	// dbURL :=
-	// db, err := sql.Open("postgres", dbURL)
+	dbURL := state.config.DbUrl
+	db, err := sql.Open("postgres", dbURL)
+	state.db = database.New(db)
 
 	commands := NewCommands()
 	commands.Register("login", HandlerLogin)
