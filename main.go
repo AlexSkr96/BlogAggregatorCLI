@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	// "github.com/google/uuid"
-	_ "github.com/lib/pq"
-
 	"database/sql"
+
+	_ "github.com/lib/pq"
 
 	"github.com/AlexSkr96/BlogAggregatorCLI/internal/config"
 	"github.com/AlexSkr96/BlogAggregatorCLI/internal/database"
@@ -22,7 +21,6 @@ func main() {
 	var state state
 	var err error
 	state.config, err = config.ReadConfig()
-	fmt.Printf("%+v\n", state.config)
 	if err != nil {
 		fmt.Printf("ERROR while getting config from file: %v\n", err)
 		os.Exit(1)
@@ -33,6 +31,9 @@ func main() {
 
 	commands := NewCommands()
 	commands.Register("login", HandlerLogin)
+	commands.Register("register", HandlerRegister)
+	commands.Register("reset", HandlerReset)
+	commands.Register("users", HandlerGetUsers)
 
 	if len(os.Args) < 2 {
 		fmt.Printf("ERROR: not enough arguments were provided\n")

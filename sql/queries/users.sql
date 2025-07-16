@@ -11,3 +11,9 @@ returning *;
 -- name: GetUserByUsername :one
 select * from users
 where name = $1;
+
+-- name: DeleteAllUsers :exec
+truncate table users;
+
+-- name: GetUsers :many
+select * from users;

@@ -16,6 +16,9 @@ func HandlerLogin(s *state, cmd command) error {
 	}
 	_, err := s.db.GetUserByUsername(context.Background(), cmd.Args[0])
 	if err != nil {
+		if err != sql.ErrNoRows {
+			return fmt.Errorf("user \"%v\" already exists", cmd.Args[0])
+		}
 		return err
 	}
 	err = s.config.SetUser(cmd.Args[0])
@@ -49,6 +52,33 @@ func HandlerRegister(s *state, cmd command) error {
 		UpdatedAt: time.Now(),
 	}
 	s.db.CreateUser(context.Background(), createUserParams)
-	fmt.Printf("created user %v with ID %v", cmd.Args[0], id)
+	err = s.config.SetUser(cmd.Args[0])
+	if err != nil {
+		return fmt.Errorf("error while setting username: %v", err)
+	}
+	fmt.Printf("created user \"%v\" with ID %v", cmd.Args[0], id)
+	return nil
+}
+
+func HandlerReset(s *state, cmd command) error {
+	err := s.db.DeleteAllUsers(context.Background())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func HandlerGetUsers(s *state, cmd command) error {
+	users, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		return err
+	}
+	for _, user := range users {
+		toPrint := fmt.Sprintf("  * %v", user.Name)
+		if user.Name == s.config.Username {
+			toPrint += " (current)"
+		}
+		fmt.Printf("%v\n", toPrint)
+	}
 	return nil
 }
