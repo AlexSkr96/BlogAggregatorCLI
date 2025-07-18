@@ -15,10 +15,8 @@ type commands struct {
 
 func (c *commands) Run(s *state, cmd command) error {
 	cmdFunc, exists := c.funcs[cmd.Name]
-	if exists {
-		if !exists {
-			return fmt.Errorf("unknown command: %v", cmd)
-		}
+	if !exists {
+		return fmt.Errorf("unknown command: %v", cmd.Name)
 	}
 	err := cmdFunc(s, cmd)
 	if err != nil {

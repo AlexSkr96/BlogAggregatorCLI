@@ -34,6 +34,9 @@ func main() {
 	commands.Register("register", HandlerRegister)
 	commands.Register("reset", HandlerReset)
 	commands.Register("users", HandlerGetUsers)
+	commands.Register("agg", HandlerAggregate)
+	commands.Register("addfeed", HandlerNewFeed)
+	commands.Register("feeds", HandlerFeeds)
 
 	if len(os.Args) < 2 {
 		fmt.Printf("ERROR: not enough arguments were provided\n")

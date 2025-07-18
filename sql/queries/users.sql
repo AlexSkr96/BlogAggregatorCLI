@@ -13,7 +13,7 @@ select * from users
 where name = $1;
 
 -- name: DeleteAllUsers :exec
-truncate table users;
+delete from users;
 
 -- name: GetUsers :many
 select * from users;
