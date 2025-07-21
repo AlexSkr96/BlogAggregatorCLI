@@ -9,8 +9,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/AlexSkr96/BlogAggregatorCLI/internal/database"
 	"github.com/google/uuid"
+
+	"github.com/AlexSkr96/BlogAggregatorCLI/internal/database"
 )
 
 type RSSFeed struct {
@@ -69,31 +70,26 @@ func HandlerAggregate(s *state, cmd command) error {
 	return nil
 }
 
-func HandlerNewFeed(s *state, cmd command) error {
+func HandlerNewFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) != 2 {
 		return fmt.Errorf("invalid number of arguments")
 	}
-	// feedURL := cmd.Args[1]
-	// rssFeed, err := fetchFeed(context.Background(), feedURL)
-	// if err != nil {
-	// 	return err
-	// }
-	user, err := s.db.GetUserByUsername(context.Background(), s.config.Username)
-	if err != nil {
-		return err
-	}
-	feedId := uuid.New()
 	feedParams := database.CreateFeedParams{
-		ID:     feedId,
+		ID:     uuid.New(),
 		Name:   sql.NullString{String: cmd.Args[0], Valid: true},
 		Url:    sql.NullString{String: cmd.Args[1], Valid: true},
 		UserID: uuid.NullUUID{UUID: user.ID, Valid: true},
 	}
-	feedId, err = s.db.CreateFeed(context.Background(), feedParams)
+	feedID, err := s.db.CreateFeed(context.Background(), feedParams)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("created feed %v with ID %v\n", cmd.Args[0], feedId)
+	fmt.Printf("created feed %v with ID %v\n", cmd.Args[0], feedID)
+	cmd.Args = []string{cmd.Args[1]}
+	err = middlewareLoggedIn(HandlerNewFeedFollow)(s, cmd)
+	if err != nil {
+		return fmt.Errorf("error while creatin feed follows: %v", err)
+	}
 	return nil
 }
 
