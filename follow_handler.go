@@ -24,6 +24,13 @@ func HandlerNewFeedFollow(s *state, cmd command, user database.User) error {
 		FeedID: feed.ID,
 	}
 	feedFollowData, err := s.db.CreateFeedFollow(context.Background(), feedFollowParams)
+	if err != nil {
+		err2 := s.db.DeleteFeed(context.Background(), feed.ID)
+		if err2 != nil {
+			return fmt.Errorf("failed to delete feed %v: %v\nfailed to create feed follow: %v", feed.Name.String, err2, err)
+		}
+		return err
+	}
 	fmt.Printf("added feed %v for user %v", feedFollowData.Name_2.String, feedFollowData.Name)
 	return nil
 }

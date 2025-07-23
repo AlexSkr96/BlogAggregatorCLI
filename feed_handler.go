@@ -8,6 +8,7 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -62,12 +63,23 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 }
 
 func HandlerAggregate(s *state, cmd command) error {
-	rssFeed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("expecting time between requests as argument, e.g. 1s, 1m, 1h")
+	}
+	timeBetweenRequests, err := time.ParseDuration(cmd.Args[0])
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%+v\n", rssFeed)
-	return nil
+	ticker := time.NewTicker(timeBetweenRequests)
+	for ; ; <-ticker.C {
+		scrapeFeed(s)
+	}
+	// rssFeed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	// if err != nil {
+	// 	return err
+	// }
+	// fmt.Printf("%+v\n", rssFeed)
+	// return nil
 }
 
 func HandlerNewFeed(s *state, cmd command, user database.User) error {
@@ -88,7 +100,7 @@ func HandlerNewFeed(s *state, cmd command, user database.User) error {
 	cmd.Args = []string{cmd.Args[1]}
 	err = middlewareLoggedIn(HandlerNewFeedFollow)(s, cmd)
 	if err != nil {
-		return fmt.Errorf("error while creatin feed follows: %v", err)
+		return fmt.Errorf("error while creating feed follows: %v", err)
 	}
 	return nil
 }
@@ -102,6 +114,26 @@ func HandlerFeeds(s *state, cmd command) error {
 		fmt.Printf("  * Feed: %v\n", feed.Name.String)
 		fmt.Printf("    - URL: %v\n", feed.Url.String)
 		fmt.Printf("    - User: %v\n", feed.Name_2)
+	}
+	return nil
+}
+
+func scrapeFeed(s *state) error {
+	feed, err := s.db.FetchNextFeed(context.Background())
+	if err != nil {
+		return err
+	}
+	err = s.db.MarkFeedFetched(context.Background(), feed.ID)
+	if err != nil {
+		return err
+	}
+	rssFeed, err := fetchFeed(context.Background(), feed.Url.String)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Feed %v:\n", rssFeed.Channel.Title)
+	for _, rssItem := range rssFeed.Channel.Item {
+		fmt.Printf("  - %v\n", rssItem.Title)
 	}
 	return nil
 }

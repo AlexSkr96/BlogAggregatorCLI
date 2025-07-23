@@ -19,3 +19,7 @@ where id = $1;
 -- name: FetchNextFeed :one
 select * from feeds
 order by last_fetched_at nulls first;
+
+-- name: DeleteFeed :exec
+delete from feeds
+where id = $1;

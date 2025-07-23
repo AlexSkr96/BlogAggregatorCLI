@@ -37,6 +37,16 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (uuid.UU
 	return id, err
 }
 
+const deleteFeed = `-- name: DeleteFeed :exec
+delete from feeds
+where id = $1
+`
+
+func (q *Queries) DeleteFeed(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteFeed, id)
+	return err
+}
+
 const fetchNextFeed = `-- name: FetchNextFeed :one
 select id, created_at, updated_at, last_fetched_at, name, url, user_id from feeds
 order by last_fetched_at nulls first
