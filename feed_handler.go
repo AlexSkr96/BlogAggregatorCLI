@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -74,12 +76,6 @@ func HandlerAggregate(s *state, cmd command) error {
 	for ; ; <-ticker.C {
 		scrapeFeed(s)
 	}
-	// rssFeed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
-	// if err != nil {
-	// 	return err
-	// }
-	// fmt.Printf("%+v\n", rssFeed)
-	// return nil
 }
 
 func HandlerNewFeed(s *state, cmd command, user database.User) error {
@@ -131,9 +127,27 @@ func scrapeFeed(s *state) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Feed %v:\n", rssFeed.Channel.Title)
 	for _, rssItem := range rssFeed.Channel.Item {
-		fmt.Printf("  - %v\n", rssItem.Title)
+		postId, err := s.db.CreatePost(
+			context.Background(),
+			uuid.New(),
+			rssItem.Title,
+			rssItem.Link,
+			rssItem.Description,
+			time.Parse(rssItem.PubDate),
+			feed.ID,
+		)
+		// If error is duplicate URL, it's fine, just skip
+		if strings.Contains(err, "duplicate") {
+			continue
+		} else if err != nil {
+			log.Fatal(err)
+		}
+
 	}
+	//fmt.Printf("Feed %v:\n", rssFeed.Channel.Title)
+	//for _, rssItem := range rssFeed.Channel.Item {
+	//	fmt.Printf("  - %v\n", rssItem.Title)
+	//}
 	return nil
 }
