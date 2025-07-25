@@ -36,11 +36,11 @@ func main() {
 	commands.Register("reset", HandlerReset)
 	commands.Register("users", HandlerGetUsers)
 	commands.Register("agg", HandlerAggregate)
-	commands.Register("addfeed", middlewareLoggedIn(HandlerNewFeed))
 	commands.Register("feeds", HandlerFeeds)
 	commands.Register("follow", middlewareLoggedIn(HandlerNewFeedFollow))
 	commands.Register("following", middlewareLoggedIn(HandlerGetFollowsForUser))
 	commands.Register("unfollow", middlewareLoggedIn(HandlerDeleteFeedFollow))
+	commands.Register("browse", middlewareLoggedIn(HandlerGetPosts))
 
 	if len(os.Args) < 2 {
 		fmt.Printf("ERROR: not enough arguments were provided\n")
