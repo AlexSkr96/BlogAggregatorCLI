@@ -1,5 +1,6 @@
 # Install
 You'll need to install PostgreSQL and GO to run this CLI
+
 'go install https://github.com/AlexSkr96/BlogAggregatorCLI'
 
 # Usage
