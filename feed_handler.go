@@ -7,9 +7,7 @@ import (
 	"fmt"
 	"html"
 	"io"
-	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -128,21 +126,32 @@ func scrapeFeed(s *state) error {
 		return err
 	}
 	for _, rssItem := range rssFeed.Channel.Item {
+		const timeRFC2822 = "Mon, 02 Jan 2006 15:04:05 -0700"
+		publishedAt, err := time.Parse(timeRFC2822, rssItem.PubDate)
+		if err != nil {
+			fmt.Printf("ERROR while parsing date in scrapeFeed \"%v\"\n", rssItem.PubDate)
+			continue
+		}
 		postId, err := s.db.CreatePost(
 			context.Background(),
-			uuid.New(),
-			rssItem.Title,
-			rssItem.Link,
-			rssItem.Description,
-			time.Parse(rssItem.PubDate),
-			feed.ID,
+			database.CreatePostParams{
+				ID:          uuid.New(),
+				Title:       sql.NullString{String: rssItem.Title, Valid: true},
+				Url:         sql.NullString{String: rssItem.Link, Valid: true},
+				Description: sql.NullString{String: rssItem.Description, Valid: true},
+				PublishedAt: sql.NullTime{Time: publishedAt, Valid: true},
+				FeedID:      feed.ID,
+			},
 		)
 		// If error is duplicate URL, it's fine, just skip
-		if strings.Contains(err, "duplicate") {
+		if err != nil {
+			if err.Error() == "pq: duplicate key value violates unique constraint \"posts_url_key\"" {
+				continue
+			}
+			fmt.Printf("ERROR: %v\n", err)
 			continue
-		} else if err != nil {
-			log.Fatal(err)
 		}
+		fmt.Printf("Created post with ID %v\n", postId)
 
 	}
 	//fmt.Printf("Feed %v:\n", rssFeed.Channel.Title)

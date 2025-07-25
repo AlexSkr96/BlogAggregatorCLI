@@ -5,7 +5,7 @@ create table posts (
     updated_at timestamp not null default current_timestamp,
     title varchar(255),
     url varchar(255) unique,
-    description varchar(255),
+    description text,
     published_at timestamp,
     feed_id uuid not null references feeds(id)
 );
